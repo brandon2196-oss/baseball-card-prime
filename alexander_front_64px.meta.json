@@ -1,0 +1,21 @@
+{
+  "version": "2.1-daemon",
+  "image": "alexander_front_64px.png",
+  "card": "alexander_front",
+  "nonce": 40759,
+  "dimensions": [
+    46,
+    64
+  ],
+  "mode": "RGB",
+  "bytes": 8832,
+  "digits": 21270,
+  "search_time": 2513.5,
+  "verified": true,
+  "prime_confirmed": true,
+  "reconstruct_ok": true,
+  "original_hash": "4bb659f61ab1e5e31948fa69992920776f1fe6797fa9354b79e615750360eeeb",
+  "primality": "BPSW + 25 (discovery) + 5 (confirm) Miller-Rabin rounds (gmpy2)",
+  "timestamp": "2026-06-25T14:51:49.309436",
+  "prime_file": "alexander_front_64px.prime.txt"
+}

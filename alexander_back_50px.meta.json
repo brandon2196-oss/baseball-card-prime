@@ -1,0 +1,21 @@
+{
+  "version": "2.1-daemon",
+  "image": "alexander_back_50px.png",
+  "card": "alexander_back",
+  "nonce": 59467,
+  "dimensions": [
+    50,
+    36
+  ],
+  "mode": "RGB",
+  "bytes": 5400,
+  "digits": 13004,
+  "search_time": 31.7,
+  "verified": true,
+  "prime_confirmed": true,
+  "reconstruct_ok": true,
+  "original_hash": "450e2532b92f631570ef5bc544180eddc7e241b9f7ff2624dab3725dc8405252",
+  "primality": "BPSW + 25 (discovery) + 5 (confirm) Miller-Rabin rounds (gmpy2)",
+  "timestamp": "2026-06-25T14:09:55.311134",
+  "prime_file": "alexander_back_50px.prime.txt"
+}

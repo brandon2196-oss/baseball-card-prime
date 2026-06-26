@@ -1,0 +1,19 @@
+{
+  "version": "2.0-daemon",
+  "image": "alexander_front_50px.png",
+  "card": "alexander_front",
+  "nonce": 99086,
+  "dimensions": [
+    36,
+    50
+  ],
+  "mode": "RGB",
+  "bytes": 5400,
+  "digits": 13005,
+  "search_time": 578.8,
+  "verified": true,
+  "original_hash": "bf7ffb888edd80bfe73645cc24a76215d95b877c4920e462839eb3b1b8b7d1f4",
+  "primality": "BPSW + 50 Miller-Rabin rounds (gmpy2)",
+  "timestamp": "2026-06-25T13:45:15.625259",
+  "prime_file": "alexander_front_50px.prime.txt"
+}
