@@ -1,0 +1,47 @@
+{
+  "purpose": "Exact full-resolution scans preserved as source artifacts for the Prime Card encoding experiment. The website displays optimized copies.",
+  "files": [
+    {
+      "role": "front_original",
+      "file": "assets/originals/alexander-front-original.jpg",
+      "source_upload_name": "AlexanderFront1200.jpg",
+      "sha256": "86741ec8480157215b3f8924478b9baba31910dad730208df05e1f15eaccefda",
+      "bytes": 1406642,
+      "dimensions": [
+        1467,
+        2048
+      ]
+    },
+    {
+      "role": "back_original",
+      "file": "assets/originals/alexander-back-original.jpg",
+      "source_upload_name": "Alexandeerback1200.jpg",
+      "sha256": "66d7d1dae039fca69d98af33375c4b7f4a46462fc22520ee6d1d8e0fe1d1f2cf",
+      "bytes": 1029934,
+      "dimensions": [
+        2048,
+        1469
+      ]
+    },
+    {
+      "role": "front_display_copy",
+      "file": "assets/display/alexander-front-display.jpg",
+      "sha256": "8840ed824284563702b621b20335b9d5b46c3b815c594bebc62a88c202d88a96",
+      "bytes": 156467,
+      "dimensions": [
+        640,
+        893
+      ]
+    },
+    {
+      "role": "back_display_copy",
+      "file": "assets/display/alexander-back-display.jpg",
+      "sha256": "0ef91413dca6b2ba5b9d0f3859915b6e17c1d8edfb483ac95eb9f00f08566efa",
+      "bytes": 168066,
+      "dimensions": [
+        960,
+        689
+      ]
+    }
+  ]
+}

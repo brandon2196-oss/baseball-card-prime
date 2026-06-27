@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noimageindex" />
+<title>The Prime Card — a baseball card preserved as a prime number</title>
+<meta name="description" content="A C.J. Alexander baseball card encoded into one enormous prime number. Decode it, rebuild the pixels, and verify the SHA-256 match in your browser." />
+<meta property="og:title" content="The Prime Card" />
+<meta property="og:description" content="A baseball card my son cared about, preserved as a prime number anyone can decode." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://brandon2196-oss.github.io/baseball-card-prime/" />
+<link rel="canonical" href="https://brandon2196-oss.github.io/baseball-card-prime/" />
+<meta property="og:image" content="https://brandon2196-oss.github.io/baseball-card-prime/assets/social/prime-card-preview.jpg" />
+<meta name="twitter:image" content="https://brandon2196-oss.github.io/baseball-card-prime/assets/social/prime-card-preview.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<style>
+  :root{
+    --bg:#03241e; --panel:#073a30; --panel2:#041b17; --ink:#f4f1e6; --mut:#9fbcae;
+    --green:#27a86a; --gold:#efb21e; --line:#0f4a3b; --danger:#e2675f;
+    --mono:'SFMono-Regular',ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:radial-gradient(1200px 600px at 72% -10%,#0a5a3f55,transparent),var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--green);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+  header{padding:16px 0;border-bottom:1px solid var(--line);position:sticky;top:0;
+    background:rgba(3,24,20,.86);backdrop-filter:blur(10px);z-index:10}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand{font-weight:800;letter-spacing:.5px;white-space:nowrap}
+  .brand b{color:var(--gold)}
+  nav{display:flex;gap:18px;align-items:center;overflow-x:auto}
+  nav a{color:var(--mut);font-size:14px;white-space:nowrap}
+  nav a:hover{color:var(--ink)}
+
+  .hero{padding:64px 0 28px}
+  .heroGrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:34px;align-items:center}
+  .kicker{font-family:var(--mono);color:var(--green);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin:0 0 12px}
+  h1{font-size:clamp(34px,5.3vw,60px);line-height:1.02;margin:0 0 14px;letter-spacing:-1px}
+  h1 .gold{color:var(--gold)}
+  .sub{color:var(--mut);max-width:670px;margin:0 0 24px;font-size:18px}
+  .cta{margin:24px 0 0;display:flex;gap:12px;flex-wrap:wrap}
+  .btn{font-family:var(--sans);font-size:16px;font-weight:700;padding:13px 24px;border-radius:999px;
+    border:1px solid #b9860f;background:linear-gradient(180deg,#f3c33f,#e3a614);color:#05271f;
+    cursor:pointer;transition:transform .08s ease,filter .15s ease;display:inline-flex;align-items:center;justify-content:center}
+  .btn:hover{filter:brightness(1.07);text-decoration:none}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn.small{font-size:14px;padding:9px 16px}
+
+  .artifact{background:linear-gradient(180deg,#073a30,#041b17);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 16px 40px #0006}
+  .cardShell{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center}
+  .realcard{display:block;max-width:150px;width:100%;height:auto;border-radius:12px;border:1px solid var(--line);box-shadow:0 10px 30px #0008;background:#0004}
+  .realcard[hidden]{display:none}
+  .artifact h2{font-size:18px;line-height:1.25;margin:0 0 8px;letter-spacing:0}
+  .artifact p{margin:0;color:var(--mut);font-size:14px}
+  .facts{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:16px 0 0;font-size:13px}
+  .facts dt{font-family:var(--mono);color:var(--green)}
+  .facts dd{margin:0;color:var(--ink)}
+  .digitsHead{display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;gap:10px}
+  .digitsHead b{font-family:var(--mono);color:var(--green);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .digitsHead span{font-family:var(--mono);color:var(--mut);font-size:11px}
+  .digits{font-family:var(--mono);font-size:11px;color:#6e8268;background:#041b17;
+    border:1px solid var(--line);border-radius:12px;padding:14px;max-height:114px;overflow:hidden;
+    position:relative;word-break:break-all;text-align:left;user-select:none;margin-top:8px}
+  .digits:after{content:"";position:absolute;left:0;right:0;bottom:0;height:54px;background:linear-gradient(transparent,#041b17)}
+  /* slow sheen sweeping across the prime preview so it feels alive */
+  .digits:before{content:"";position:absolute;top:0;bottom:0;width:42%;left:-50%;z-index:1;pointer-events:none;
+    background:linear-gradient(100deg,transparent,#27a86a22 40%,#efb21e22 50%,transparent);
+    animation:sheen 6.5s linear infinite}
+  @keyframes sheen{0%{left:-50%}100%{left:120%}}
+  .hint{color:var(--mut);font-size:13px;margin-top:10px}
+  .fineprint{color:#86a596;font-size:12px;margin-top:14px}
+
+  .statbar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:28px 0 0}
+  .stat{background:#041b17;border:1px solid var(--line);border-radius:14px;padding:12px}
+  .stat b{display:block;color:var(--gold);font-family:var(--mono);font-size:12px;letter-spacing:.5px;text-transform:uppercase}
+  .stat span{display:block;margin-top:3px;color:var(--ink);font-size:14px}
+
+  .lab{margin:32px 0;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .labIntro{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:16px}
+  .labIntro h2{margin:0;font-size:24px}
+  .labIntro p{margin:4px 0 0;color:var(--mut);max-width:640px;font-size:15px}
+  .labgrid{display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start}
+  .stage{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .cvwrap{position:relative;width:240px;max-width:80vw}
+  #cv{image-rendering:pixelated;background:#0006;border:1px solid var(--line);border-radius:10px;width:100%;height:auto;display:block}
+  /* reveal overlay: a shade that retracts upward + a glowing scan line */
+  #shade{position:absolute;left:0;right:0;bottom:0;height:0;border-radius:0 0 10px 10px;
+    background:linear-gradient(180deg,#062a22,#041b17);pointer-events:none;z-index:2}
+  #scan{position:absolute;left:-3px;right:-3px;top:0;height:3px;opacity:0;z-index:3;pointer-events:none;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);box-shadow:0 0 14px 2px #efb21ecc}
+  #marker{position:absolute;display:none;border:2px solid var(--gold);border-radius:2px;z-index:4;
+    box-shadow:0 0 0 1px #000,0 0 12px #d8b24a;pointer-events:none;
+    transition:opacity .3s ease,transform .5s cubic-bezier(.2,1.45,.4,1)}
+  #ticker{font-family:var(--mono);font-size:11px;color:var(--gold);opacity:0;transition:opacity .25s;
+    letter-spacing:1px;word-break:break-all;min-height:15px;max-width:240px;text-align:center;line-height:1.3}
+  .pick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center}
+  .chip{font-family:var(--mono);font-size:12px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);
+    background:#0c120a;color:var(--mut);cursor:pointer}
+  .chip[aria-pressed="true"]{border-color:var(--green);color:var(--ink);background:#11210f}
+  .chip:disabled{opacity:.45;cursor:not-allowed}
+  .chip.surprise{margin-left:auto;border-color:#b9860f;color:var(--gold);background:#1a1405}
+  .readout{font-family:var(--mono);font-size:13px}
+  .readout div{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .readout .k{color:var(--mut)} .readout .v{color:var(--ink);text-align:right;word-break:break-all}
+  .ok{color:var(--green);font-weight:800} .bad{color:var(--danger);font-weight:800}
+  .pixnote{font-size:13px;color:var(--gold);margin-top:8px;text-align:center;min-height:18px}
+  .status{font-family:var(--mono);font-size:13px;color:var(--mut);min-height:20px;margin-top:6px;text-align:center}
+  .note{margin-top:14px;color:var(--mut);font-size:14px}
+  .note strong{color:var(--ink)}
+
+  section{padding:44px 0;border-top:1px solid var(--line)}
+  h2{font-size:28px;margin:0 0 8px;letter-spacing:-.3px}
+  h2 .num{font-family:var(--mono);color:var(--green);font-size:15px;margin-right:10px}
+  .lead{color:var(--mut);max-width:760px}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px}
+  .card h3{margin:0 0 6px;font-size:17px}
+  .card p{margin:0;color:var(--mut);font-size:15px}
+  .card .big{font-family:var(--mono);color:var(--green);font-size:24px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:14px}
+  blockquote{margin:22px 0 0;padding:14px 18px;border-left:3px solid var(--gold);color:var(--ink);
+    background:#140f06;border-radius:0 10px 10px 0;font-size:17px}
+  .quiet{text-align:center}
+  .quiet .lead{margin-left:auto;margin-right:auto}
+  .callout{background:#041b17;border:1px solid var(--line);border-radius:15px;padding:18px;margin-top:18px}
+  code{font-family:var(--mono);font-size:.95em;color:var(--gold)}
+  footer{padding:40px 0;border-top:1px solid var(--line);color:var(--mut);font-size:13px;text-align:center}
+  footer a{color:var(--mut)}
+
+  /* ---- The card itself ---- */
+  .gallery{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
+  .frame{background:linear-gradient(180deg,#073a30,#041b17);border:1px solid var(--line);border-radius:16px;
+    padding:16px;text-align:center;transition:transform .18s ease,box-shadow .18s ease}
+  .frame:hover{transform:translateY(-4px);box-shadow:0 18px 40px #0007}
+  .frame img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);display:block;background:#0004}
+  .frame .cap{margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--green);letter-spacing:.5px}
+  .frame .sub2{color:var(--mut);font-size:13px;margin-top:2px}
+  .scanDetails{margin-top:18px;background:#041b17;border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--mut);font-size:13px}
+  .scanDetails summary{cursor:pointer;color:var(--ink);font-weight:700}
+  .scanDetails p{margin:10px 0;color:var(--mut)}
+  .hashrow{display:grid;grid-template-columns:70px 1fr;gap:8px 12px;padding:6px 0;border-top:1px dashed var(--line)}
+  .hashrow:first-of-type{border-top:0}
+  .hashrow b{font-family:var(--mono);color:var(--green);font-size:12px;text-transform:uppercase}
+  .hashrow code{word-break:break-all;color:var(--gold)}
+
+  .compareWrap{margin-top:26px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .compare{position:relative;width:330px;max-width:84vw;aspect-ratio:57/80;border-radius:14px;overflow:hidden;
+    border:1px solid var(--line);box-shadow:0 14px 36px #0007;--pos:100%;cursor:ew-resize;user-select:none;touch-action:none}
+  .compare img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .cmpTop{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--pos)) 0 0)}
+  /* the reconstruction is the low-res (57x80) layer — render its real pixels crisply, not blurred */
+  .cmpBase{image-rendering:pixelated}
+  .cmpTop img{image-rendering:auto}
+  .cmpDiv{position:absolute;top:0;bottom:0;left:var(--pos);width:2px;background:var(--gold);box-shadow:0 0 10px #efb21e;z-index:4}
+  .cmpHandle{position:absolute;top:50%;left:clamp(18px,var(--pos),calc(100% - 18px));transform:translate(-50%,-50%);z-index:5;
+    width:34px;height:34px;border-radius:50%;background:var(--gold);color:#05271f;font-weight:900;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px #0008;pointer-events:none}
+  .cmpTag{position:absolute;z-index:5;font-family:var(--mono);font-size:11px;letter-spacing:.5px;
+    padding:4px 8px;border-radius:6px;background:#041b17cc;border:1px solid var(--line);color:var(--ink)}
+  .cmpTag.left{top:10px;left:10px} .cmpTag.right{bottom:10px;right:10px;color:var(--gold)}
+  .cmpRange{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+  .compareCap{color:var(--mut);font-size:14px;max-width:560px;text-align:center}
+
+  @media(max-width:860px){
+    .heroGrid{grid-template-columns:1fr}
+    .statbar{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:760px){
+    .labgrid,.steps,.two{grid-template-columns:1fr}
+    .labIntro{display:block}
+  }
+  @media(max-width:600px){
+    .wrap{padding:0 16px}
+    header .wrap{flex-direction:column;gap:8px;align-items:flex-start}
+    nav{width:100%;gap:16px;-webkit-overflow-scrolling:touch}
+    .hero{padding:40px 0 24px}
+    h1{font-size:34px}
+    .sub{font-size:16px}
+    .cardShell{grid-template-columns:1fr;text-align:center}
+    .realcard{margin:0 auto;max-width:190px}
+    .statbar{grid-template-columns:1fr}
+    .lab{padding:16px;border-radius:14px}
+    .cvwrap{width:64vw;max-width:280px}
+    .btn{width:100%;padding:15px 20px}
+    .cta{flex-direction:column}
+    .readout{font-size:12px}
+    .readout div{flex-wrap:wrap}
+    .gallery{grid-template-columns:1fr}
+    section{padding:34px 0}
+    h2{font-size:23px}
+    blockquote{font-size:16px}
+  }
+  @media(hover:none){ .btn:hover{filter:none} }
+  @media(prefers-reduced-motion:reduce){ .digits:before{animation:none;display:none} }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand">THE <b>PRIME</b> CARD</div>
+  <nav aria-label="Main navigation">
+    <a href="#decode">Decode</a>
+    <a href="#card">The card</a>
+    <a href="#origin">Origin</a>
+    <a href="#how">How</a>
+    <a href="#nft">NFT?</a>
+    <a href="#verify">Verify</a>
+  </nav>
+</div></header>
+
+<div class="wrap">
+
+  <main class="hero">
+    <div class="heroGrid">
+      <div>
+        <p class="kicker">Started January 2026 · Primes minted June 2026 · Built with Cooper</p>
+        <h1>A baseball card, preserved as a <span class="gold">prime number.</span></h1>
+        <p class="sub">My son loved the card. I wanted to really learn algorithms by building something hard enough to fight back. So we turned a C.J. Alexander Topps Update Halloween parallel — serial #3/5 — into one enormous prime that can be decoded back into the card image.</p>
+        <div class="cta">
+          <button class="btn" type="button" onclick="document.getElementById('decode').scrollIntoView();decode();">Watch it decode ↓</button>
+          <a class="btn ghost" href="https://github.com/brandon2196-oss/baseball-card-prime" target="_blank" rel="noopener">See the code →</a>
+        </div>
+      </div>
+      <aside class="artifact" aria-label="Prime card summary">
+        <div class="cardShell">
+          <img class="realcard" src="assets/display/alexander-front-display.jpg" alt="Display copy of the C.J. Alexander baseball card used for the prime card project" loading="eager" width="640" height="893" onerror="this.hidden=true" />
+          <div>
+            <h2>Not a pointer. Not a token. The number contains the image.</h2>
+            <p>Subtract the published offset, rebuild the RGB bytes, and the browser checks the SHA-256 fingerprint.</p>
+          </div>
+        </div>
+        <dl class="facts">
+          <dt>card</dt><dd>C.J. Alexander · Topps Update Halloween parallel · #3/5</dd>
+          <dt>form</dt><dd>front/back image bytes encoded as prime integers</dd>
+          <dt>check</dt><dd>browser hash match + repo verification scripts</dd>
+        </dl>
+        <div class="digitsHead"><b>live prime preview</b><span id="heroLabel">front · 50px</span></div>
+        <div class="digits" id="heroDigits">loading a preview of the prime…</div>
+        <div class="hint">One number. One card. No blockchain required.</div>
+      </aside>
+    </div>
+    <div class="statbar" aria-label="Project highlights">
+      <div class="stat"><b>artifact</b><span>Real sports card image data</span></div>
+      <div class="stat"><b>math</b><span>RGB bytes → integer → prime</span></div>
+      <div class="stat"><b>proof</b><span>SHA-256 match in browser</span></div>
+      <div class="stat"><b>reason</b><span>A dad-and-son algorithm build</span></div>
+    </div>
+    <div class="fineprint">Independent educational/math project. Topps, MLB, MLBPA, Athletics, player names, images, logos, and trademarks belong to their respective owners. No affiliation, sponsorship, or endorsement is implied.</div>
+  </main>
+
+  <section class="lab" id="decode" aria-labelledby="decode-title">
+    <div class="labIntro">
+      <div>
+        <h2 id="decode-title">Decode the number</h2>
+        <p>Pick a version, then let your browser reconstruct the image from the published prime and metadata. It runs itself the first time it scrolls into view.</p>
+      </div>
+    </div>
+    <div class="pick" id="pick" aria-label="Choose card image version"></div>
+    <div class="labgrid">
+      <div class="stage">
+        <div class="cvwrap">
+          <canvas id="cv" width="36" height="50" aria-label="Decoded card image"></canvas>
+          <div id="shade"></div>
+          <div id="scan"></div>
+          <div id="marker"></div>
+        </div>
+        <div id="ticker" aria-hidden="true"></div>
+        <div class="pixnote" id="pixnote"></div>
+        <div class="status" id="status" aria-live="polite">Pick a card above, then press Decode.</div>
+        <button class="btn" id="go" type="button" onclick="decode()">Decode &amp; hash-check</button>
+      </div>
+      <div>
+        <div class="readout" id="readout">
+          <div><span class="k">prime digits</span><span class="v" id="r_digits">—</span></div>
+          <div><span class="k">image size</span><span class="v" id="r_dim">—</span></div>
+          <div><span class="k">raw bytes</span><span class="v" id="r_bytes">—</span></div>
+          <div><span class="k">prime − offset → image</span><span class="v" id="r_decode">—</span></div>
+          <div><span class="k">SHA-256 image check</span><span class="v" id="r_hash">—</span></div>
+          <div><span class="k">pixel(s) touched by offset</span><span class="v" id="r_pix">—</span></div>
+        </div>
+        <p class="note"><strong>What this proves in the browser:</strong> the published number and offset rebuild the recorded image bytes exactly. The primality check belongs in the repository scripts, because a browser demo should not pretend to be a full math lab in a trench coat.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="card">
+    <h2><span class="num">01</span>The card itself</h2>
+    <p class="lead">Before it was a prime, it was just a card my son liked: a C.J. Alexander Topps Update Halloween parallel, serial-numbered 3 of 5. Here are optimized display copies of the source scans the project is built from. The full-resolution originals are preserved by SHA-256 in the source manifest below, and the slider shows exactly how much of the front image an 80-pixel prime can remember.</p>
+    <div class="gallery">
+      <figure class="frame" style="margin:0">
+        <img src="assets/display/alexander-front-display.jpg" alt="Front display copy of the C.J. Alexander baseball card" loading="lazy" width="640" height="893" onerror="this.closest('.frame').style.display='none'">
+        <figcaption class="cap">FRONT</figcaption>
+        <div class="sub2">The image bytes behind the front primes</div>
+      </figure>
+      <figure class="frame" style="margin:0">
+        <img src="assets/display/alexander-back-display.jpg" alt="Back display copy of the C.J. Alexander baseball card" loading="lazy" width="960" height="689" onerror="this.closest('.frame').style.display='none'">
+        <figcaption class="cap">BACK</figcaption>
+        <div class="sub2">Stats and the 3/5 serial — its own prime</div>
+      </figure>
+    </div>
+    <details class="scanDetails">
+      <summary>Source scan hashes</summary>
+      <p>Full-resolution originals are kept as verification artifacts; the page itself uses optimized display copies.</p>
+      <div class="hashrow"><b>front</b><code>86741ec8480157215b3f8924478b9baba31910dad730208df05e1f15eaccefda</code></div>
+      <div class="hashrow"><b>back</b><code>66d7d1dae039fca69d98af33375c4b7f4a46462fc22520ee6d1d8e0fe1d1f2cf</code></div>
+    </details>
+    <div class="compareWrap">
+      <div class="compare" id="compare">
+        <img class="cmpBase" src="alexander_front_80px_reconstructed.png" alt="Card rebuilt from the prime" onerror="this.src='https://raw.githubusercontent.com/brandon2196-oss/baseball-card-prime/main/alexander_front_80px_reconstructed.png'" />
+        <div class="cmpTop"><img src="assets/display/alexander-front-display.jpg" alt="Original display scan"></div>
+        <div class="cmpDiv"></div>
+        <div class="cmpHandle">⇆</div>
+        <span class="cmpTag left">Original scan</span>
+        <span class="cmpTag right">Rebuilt from the prime · 57×80</span>
+        <input class="cmpRange" type="range" min="0" max="100" value="100" aria-label="Drag to dissolve the original scan into the prime reconstruction" />
+      </div>
+      <p class="compareCap">You're looking at the original scan. Drag the handle left to dissolve it into the actual 57×80 RGB pixels that fall out of the 32,945-digit front prime — not a thumbnail of the photo, the real decoded bytes.</p>
+    </div>
+  </section>
+
+  <section id="origin">
+    <h2><span class="num">02</span>Why this exists</h2>
+    <p class="lead">This started as a dad-and-son rabbit hole. Cooper had the baseball card obsession. I had the itch to understand algorithms by building something real instead of just reading about them. A rare card gave the project a reason to exist: not hype, not resale value, not internet confetti — just a weird, durable little artifact we could verify ourselves.</p>
+    <p class="lead">The first time the digits snapped back into the card and the hash matched, the project stopped being a stunt and became the point: math, baseball, preservation, and learning all in the same sentence.</p>
+    <blockquote>The Athletics rookie angle stayed on purpose — a small tip of the cap to <em>Moneyball</em>, and to the idea that baseball and math have always belonged together.</blockquote>
+  </section>
+
+  <section id="how">
+    <h2><span class="num">03</span>How a number becomes a card</h2>
+    <p class="lead">A digital image is a fixed list of RGB bytes. Read those bytes in order and you get one enormous integer. That integer usually is not prime, so the search moves upward until it reaches a prime. The published offset records exactly how far it moved.</p>
+    <div class="steps">
+      <div class="card"><div class="big">①</div><h3>Pixels become bytes</h3><p>Every red, green, and blue value from the card image is read in a fixed order.</p></div>
+      <div class="card"><div class="big">②</div><h3>Bytes become an integer</h3><p>The byte stream is interpreted as one giant number. Nothing mystical. Just a brutally large integer.</p></div>
+      <div class="card"><div class="big">③</div><h3>The integer becomes prime</h3><p>The script searches upward, records the offset, and publishes the prime plus the metadata needed to reverse it.</p></div>
+    </div>
+  </section>
+
+  <section id="nft">
+    <h2><span class="num">04</span>Why it is not an NFT</h2>
+    <div class="two">
+      <div>
+        <p class="lead">People ask because the phrase sounds collectible. But this does not need a chain, token, wallet, or marketplace. An NFT usually points to an asset somewhere else. This project is more old-school and more interesting: the number itself carries the image bytes.</p>
+      </div>
+      <div>
+        <p class="lead">The idea sits in the tradition of primes that contain other information — code, images, symbols — but this version is personal: a full-color sports-card artifact built to be decoded, checked, and understood without trusting me.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="verify">
+    <h2><span class="num">05</span>How to check it yourself</h2>
+    <p class="lead">The decoder above runs in your browser. It fetches the public prime and metadata, subtracts the offset, rebuilds the RGB pixels, and recomputes the SHA-256 hash against the recorded original image bytes. The repository has the primes, metadata, and scripts for anyone who wants to inspect the process instead of taking the page's word for it.</p>
+    <div class="callout">
+      <p class="lead" style="margin:0"><strong>Publish this distinction clearly:</strong> the website verifies the image reconstruction. The repository should verify primality. Those are related, but they are not the same claim.</p>
+    </div>
+    <div class="cta" style="justify-content:flex-start">
+      <a class="btn ghost" href="https://github.com/brandon2196-oss/baseball-card-prime" target="_blank" rel="noopener">Open the repository →</a>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    The Prime Card — a baseball card image encoded as a verifiable prime-number artifact.<br/>
+    Independent educational project; no affiliation, sponsorship, or endorsement is implied.<br/>
+    Public &amp; independently checkable: <a href="https://github.com/brandon2196-oss/baseball-card-prime" target="_blank" rel="noopener">github.com/brandon2196-oss/baseball-card-prime</a>
+  </div>
+</footer>
+
+<script>
+// Files are fetched relative first (works when served from this repo / GitHub Pages),
+// then fall back to the public raw URL so the page also works hosted anywhere else.
+const REPO = "https://raw.githubusercontent.com/brandon2196-oss/baseball-card-prime/main/";
+const REDUCE = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const CARDS = [
+  {key:"alexander_front_50px", label:"Front · 50px"},
+  {key:"alexander_back_50px",  label:"Back · 50px"},
+  {key:"alexander_front_64px", label:"Front · 64px"},
+  {key:"alexander_back_64px",  label:"Back · 64px"},
+  {key:"alexander_front_80px", label:"Front · 80px"},
+  {key:"alexander_back_80px",  label:"Back · 80px"},
+];
+let current = "alexander_front_50px";
+const cache = {};
+
+async function fetchText(key, ext){
+  try{ const r = await fetch(key+ext); if(r.ok) return await r.text(); }catch(e){}
+  const r2 = await fetch(REPO+key+ext);
+  if(!r2.ok) throw new Error("missing "+ext);
+  return await r2.text();
+}
+
+/* ---------- card picker ---------- */
+const pick = document.getElementById("pick");
+CARDS.forEach(c=>{
+  const b=document.createElement("button");
+  b.className="chip"; b.type="button"; b.textContent=c.label; b.dataset.key=c.key;
+  b.setAttribute("aria-pressed", c.key===current);
+  b.onclick=()=>selectCard(c.key, c.label);
+  pick.appendChild(b);
+});
+// "Surprise me" — pick a random other version and decode it
+const surprise=document.createElement("button");
+surprise.className="chip surprise"; surprise.type="button"; surprise.textContent="✦ Surprise me";
+surprise.onclick=()=>{
+  const others=CARDS.filter(c=>c.key!==current);
+  const c=others[Math.floor(Math.random()*others.length)];
+  selectCard(c.key, c.label);
+  decode();
+};
+pick.appendChild(surprise);
+
+function selectCard(key, label){
+  current=key;
+  [...pick.children].forEach(x=>{ if(x.dataset.key!==undefined) x.setAttribute("aria-pressed", x.dataset.key===current); });
+  label = label || (CARDS.find(c=>c.key===key)||{}).label || key;
+  document.getElementById("status").textContent="Selected "+label+". Press Decode to rebuild it.";
+  loadHeroPreview(label);
+}
+
+/* ---------- live hero prime preview (updates with selection) ---------- */
+function loadHeroPreview(label){
+  const lbl=label || (CARDS.find(c=>c.key===current)||{}).label || current;
+  document.getElementById("heroLabel").textContent = lbl.toLowerCase().replace(/\s+/g,' ');
+  document.getElementById("heroDigits").textContent="loading a preview of the prime…";
+  fetchText(current, ".prime.txt")
+    .then(t=>{ document.getElementById("heroDigits").textContent=t.trim(); })
+    .catch(()=>{ document.getElementById("heroDigits").textContent="Prime preview loads from the public repository."; });
+}
+loadHeroPreview();
+
+/* ---------- math helpers ---------- */
+function toBytes(n, len){
+  const out=new Uint8Array(len);
+  for(let i=len-1;i>=0;i--){ out[i]=Number(n & 255n); n >>= 8n; }
+  return out;
+}
+async function sha256hex(bytes){
+  if(window.crypto && crypto.subtle){
+    const buf=await crypto.subtle.digest("SHA-256", bytes);
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  return null;
+}
+function setText(id,t,cls){const e=document.getElementById(id);e.textContent=t;e.className="v"+(cls?" "+cls:"");}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---------- animation: digit ticker + scanline reveal ---------- */
+function randDigits(n){ let s=""; for(let i=0;i<n;i++) s+=(Math.random()*10|0); return s; }
+function runTicker(ms){
+  return new Promise(res=>{
+    const el=document.getElementById("ticker"); el.style.opacity="1";
+    const t0=performance.now();
+    (function f(now){
+      el.textContent=randDigits(54);
+      if(now-t0<ms) requestAnimationFrame(f); else { el.style.opacity="0"; res(); }
+    })(performance.now());
+  });
+}
+function easeInOut(t){ return t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+function revealCanvas(ms, digits){
+  return new Promise(res=>{
+    const shade=document.getElementById("shade"), scan=document.getElementById("scan");
+    shade.style.height="100%"; scan.style.opacity="1"; scan.style.top="0";
+    const t0=performance.now();
+    (function f(now){
+      let p=Math.min(1,(now-t0)/ms); const e=easeInOut(p);
+      shade.style.height=((1-e)*100)+"%";
+      scan.style.top=(e*100)+"%";
+      setText("r_digits", Math.round(e*digits).toLocaleString()+" digits");
+      if(p<1) requestAnimationFrame(f);
+      else { scan.style.opacity="0"; shade.style.height="0"; res(); }
+    })(performance.now());
+  });
+}
+
+/* ---------- the decoder ---------- */
+let decoding=false;
+async function decode(){
+  if(decoding) return; decoding=true;
+  const status=document.getElementById("status");
+  const go=document.getElementById("go"); go.disabled=true;
+  const marker=document.getElementById("marker"); marker.style.display="none";
+  status.textContent="Fetching prime and metadata from the public repository…";
+  ["r_digits","r_dim","r_bytes","r_decode","r_hash","r_pix"].forEach(id=>setText(id,"…"));
+  document.getElementById("pixnote").textContent="";
+  try{
+    let data=cache[current];
+    if(!data){
+      const [metaTxt, prime]=await Promise.all([
+        fetchText(current, ".meta.json"),
+        fetchText(current, ".prime.txt")
+      ]);
+      data={meta:JSON.parse(metaTxt), prime:prime.trim()}; cache[current]=data;
+    }
+    const {meta, prime}=data;
+
+    status.textContent="Parsing a "+meta.digits.toLocaleString()+"-digit integer…";
+    const tickerDone = REDUCE ? Promise.resolve() : runTicker(700);
+
+    const P=BigInt(prime);
+    const N=P - BigInt(meta.nonce);
+    const [W,H]=meta.dimensions;
+    const bytesN=toBytes(N, meta.bytes);
+    const bytesP=toBytes(P, meta.bytes);
+
+    status.textContent="Recomputing SHA-256 image fingerprint…";
+    const hex=await sha256hex(bytesN);
+    const matched = hex ? (hex===meta.original_hash) : null;
+
+    // which bytes/pixels the offset disturbed (the least-significant tail = bottom-right)
+    const changedBytes=[];
+    for(let i=0;i<meta.bytes;i++){ if(bytesN[i]!==bytesP[i]) changedBytes.push(i); }
+    const changedPixels=[...new Set(changedBytes.map(i=>Math.floor(i/3)))];
+    let px=-1, py=-1;
+    if(changedPixels.length){
+      const pixIndex=changedPixels[changedPixels.length-1];
+      px=pixIndex%W; py=Math.floor(pixIndex/W);
+    }
+
+    // paint full image to the canvas (revealed progressively by the shade overlay)
+    const cv=document.getElementById("cv"); cv.width=W; cv.height=H;
+    const ctx=cv.getContext("2d");
+    const img=ctx.createImageData(W,H);
+    for(let i=0,j=0;i<meta.bytes;i+=3,j+=4){
+      img.data[j]=bytesN[i]; img.data[j+1]=bytesN[i+1]; img.data[j+2]=bytesN[i+2]; img.data[j+3]=255;
+    }
+    ctx.putImageData(img,0,0);
+    cv.style.width="240px";
+
+    // static readouts
+    setText("r_dim", W+" × "+H+" px ("+meta.mode+")");
+    setText("r_bytes", meta.bytes.toLocaleString()+" bytes");
+    setText("r_decode","reconstructed","ok");
+    if(matched===null) setText("r_hash","needs HTTPS or localhost","");
+    else setText("r_hash", matched?"PASS — identical":"MISMATCH", matched?"ok":"bad");
+    if(px>=0){
+      const label=changedPixels.length.toLocaleString()+" pixel"+(changedPixels.length===1?"":"s")+"; marker at ("+px+", "+py+")";
+      setText("r_pix",label,"");
+      document.getElementById("pixnote").textContent="↘ marker shows the final affected corner pixel";
+    } else setText("r_pix","none detected");
+
+    // animated reveal (or instant if reduced motion)
+    await tickerDone;
+    status.textContent="The number is folding back into pixels…";
+    if(REDUCE){
+      document.getElementById("shade").style.height="0";
+      setText("r_digits", meta.digits.toLocaleString()+" digits");
+    } else {
+      await revealCanvas(1100, meta.digits);
+    }
+
+    // marker fly-in
+    if(px>=0){
+      marker.style.transition="none";
+      marker.style.left=(px/W*100)+"%"; marker.style.top=(py/H*100)+"%";
+      marker.style.width=(1/W*100)+"%"; marker.style.height=(1/H*100)+"%";
+      marker.style.display="block";
+      if(!REDUCE){ marker.style.opacity="0"; marker.style.transform="scale(2.6)";
+        void marker.offsetWidth;
+        marker.style.transition="opacity .3s ease,transform .5s cubic-bezier(.2,1.45,.4,1)";
+        marker.style.opacity="1"; marker.style.transform="scale(1)";
+      } else { marker.style.opacity="1"; marker.style.transform="scale(1)"; }
+    } else { marker.style.display="none"; }
+
+    status.textContent = matched===false
+      ? "Decoded, but the image hash did not match. That needs investigation."
+      : "Done. The published offset reconstructs this card image, and the hash check passed.";
+  }catch(e){
+    status.textContent="Could not load this version. Try Front · 50px, or confirm the files are published.";
+  }finally{ go.disabled=false; decoding=false; }
+}
+
+/* ---------- run once when the lab scrolls into view ---------- */
+let autoRan=false;
+if("IntersectionObserver" in window){
+  const io=new IntersectionObserver((entries)=>{
+    entries.forEach(en=>{
+      if(en.isIntersecting && !autoRan && !decoding){ autoRan=true; decode(); io.disconnect(); }
+    });
+  }, {threshold:.35});
+  io.observe(document.getElementById("decode"));
+}
+
+/* ---------- original-vs-reconstruction comparison slider ---------- */
+(function(){
+  const c=document.getElementById("compare"); if(!c) return;
+  const range=c.querySelector(".cmpRange");
+  function set(p){ p=Math.max(0,Math.min(100,p)); c.style.setProperty("--pos", p+"%"); }
+  range.addEventListener("input", ()=>set(+range.value));
+  function fromEvent(e){
+    const r=c.getBoundingClientRect();
+    const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+    const p=x/r.width*100; range.value=Math.round(p); set(p);
+  }
+  let drag=false;
+  c.addEventListener("pointerdown", e=>{drag=true; c.setPointerCapture&&c.setPointerCapture(e.pointerId); fromEvent(e);});
+  c.addEventListener("pointermove", e=>{ if(drag) fromEvent(e); });
+  window.addEventListener("pointerup", ()=>drag=false);
+  set(100);
+})();
+</script>
+</body>
+</html>
