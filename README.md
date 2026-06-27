@@ -18,8 +18,8 @@ Each prime here, decoded, reproduces that card's image bit-for-bit.
 4. `P` is a prime number. `P - nonce` is the card, exactly.
 
 This is the "illegal prime" / "prime portrait" technique (cf. Phil Carmody's
-2001 illegal prime; the 2017 Trinity Hall Prime) applied to a full-color,
-licensed sports trading card — which, to our knowledge, has not been done before.
+2001 illegal prime; the 2017 Trinity Hall Prime), here applied to a full-color
+sports trading card — a variation we hadn't seen done before we built it.
 
 ## The primes
 
@@ -80,3 +80,11 @@ This project is a deliberate homage to two ideas that made it possible:
 This folder is committed to Git and its manifest is anchored with
 OpenTimestamps (`MANIFEST.sha256.ots`), establishing the date these primes
 existed. Author: Brandon.
+
+## Not affiliated
+
+This is an independent educational and mathematical project. Topps, MLB, MLBPA,
+the Athletics, player names, images, logos, and trademarks belong to their
+respective owners. No affiliation, sponsorship, or endorsement is implied. The
+card image appears here solely for non-commercial, educational, and research
+purposes.
