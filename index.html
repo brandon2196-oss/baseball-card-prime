@@ -356,7 +356,7 @@
     <h2><span class="num">05</span>How to check it yourself</h2>
     <p class="lead">The decoder above runs in your browser. It fetches the public prime and metadata, subtracts the offset, rebuilds the RGB pixels, and recomputes the SHA-256 hash against the recorded original image bytes. The repository has the primes, metadata, and scripts for anyone who wants to inspect the process instead of taking the page's word for it.</p>
     <div class="callout">
-      <p class="lead" style="margin:0"><strong>Publish this distinction clearly:</strong> the website verifies the image reconstruction. The repository should verify primality. Those are related, but they are not the same claim.</p>
+      <p class="lead" style="margin:0"><strong>One honest distinction:</strong> this page proves the <em>reconstruction</em> — the published number minus its offset rebuilds the exact card image, confirmed by SHA-256 in your browser. It does not prove the number is <em>prime</em>; that's a separate claim, re-checked by the repository's <code>verify.py</code> (BPSW + Miller–Rabin). Related, but not the same thing.</p>
     </div>
     <div class="cta" style="justify-content:flex-start">
       <a class="btn ghost" href="https://github.com/brandon2196-oss/baseball-card-prime" target="_blank" rel="noopener">Open the repository →</a>
