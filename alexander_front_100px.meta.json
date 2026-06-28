@@ -1,0 +1,21 @@
+{
+  "version": "2.1-daemon",
+  "image": "alexander_front_100px.png",
+  "card": "alexander_front",
+  "nonce": 158797,
+  "dimensions": [
+    72,
+    100
+  ],
+  "mode": "RGB",
+  "bytes": 21600,
+  "digits": 52018,
+  "verified": true,
+  "prime_confirmed": true,
+  "reconstruct_ok": true,
+  "original_hash": "a64848144353d45356e7284e9c741911c9cf2f4fcb1f7ec724f2538b2e482b76",
+  "primality": "strong BPSW / Baillie-PSW (gmpy2 is_strong_bpsw_prp)",
+  "timestamp": "2026-06-28T20:13:22.929880",
+  "prime_file": "alexander_front_100px.prime.txt",
+  "note": "Canonical next prime above the image integer. An earlier non-canonical candidate (nonce 653413) from a resume-skipped parallel search was superseded after a full re-scan of the skipped ranges confirmed 158797 is the minimal gap."
+}
