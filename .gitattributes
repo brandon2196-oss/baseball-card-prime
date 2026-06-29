@@ -1,2 +1,5 @@
 *.prime.txt -diff linguist-generated
 *.ots binary
+# Milestone manifest was OpenTimestamped on Windows (CRLF). Pin byte-exact so the
+# Bitcoin attestation in proofs/milestone-*.MANIFEST.sha256.ots keeps verifying.
+proofs/milestone-*.MANIFEST.sha256 -text
